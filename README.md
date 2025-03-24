@@ -13,9 +13,10 @@ MyTicketsApp is a Flutter-based application that allows users to store, manage, 
 ## 🛠️ Technologies Used  
 - **Flutter** (Dart) – Frontend  
 - **Node.js + Express.js** – Backend (optional)  
-- **MySQL – Database  
+- **MySQL** – Database  
 - **Provider / Riverpod** – State Management  
-<h3>Screenshots</h3>
+
+## 📸 Screenshots  
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/18602375-cbf5-4bef-b9f3-3020cbca5e05" width="200">
@@ -29,8 +30,6 @@ MyTicketsApp is a Flutter-based application that allows users to store, manage, 
   <img src="https://github.com/user-attachments/assets/f1c8a4d6-6c0a-4fcb-ad45-ac4e60a5b20d" width="200">
 </p>
 
-
-## 📂 Project Structure  
 ## 📥 Installation & Usage  
 To clone and run the project, follow these steps:  
 ```bash
