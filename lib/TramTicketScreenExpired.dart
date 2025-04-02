@@ -5,6 +5,8 @@ import 'package:tram_app2/Ticket.dart';
 
 
 class TramTicketScreenExpired extends StatefulWidget {
+    final Map<String, dynamic> user;
+  TramTicketScreenExpired({required this.user});
   @override
   _TramTicketScreenState createState() => _TramTicketScreenState();
 }
@@ -60,10 +62,10 @@ class _TramTicketScreenState extends State<TramTicketScreenExpired> {
                     _buildToggleButton("Active", isActive, () {
                       setState(() {
                        
-    //                           Navigator.push(
-    //   context,
-    //   MaterialPageRoute(builder: (context) => TramTicketScreen(user: widget)),
-    // );
+                              Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => TramTicketScreen(user: widget.user)),
+    );
                       });
                     }, screenWidth),
                     SizedBox(width: screenWidth * 0.02),
@@ -167,7 +169,6 @@ class _TramTicketScreenState extends State<TramTicketScreenExpired> {
               ),
               SizedBox(height: 10),
 
-              // معلومات التذكرة
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -200,7 +201,7 @@ class _TramTicketScreenState extends State<TramTicketScreenExpired> {
 
               SizedBox(height: 15),
 
-              // رقم التذكرة
+           
               Text("Id ticket", style: TextStyle(fontSize: 20)),
               Text(
                 id_ticket,
@@ -208,7 +209,7 @@ class _TramTicketScreenState extends State<TramTicketScreenExpired> {
               ),
               SizedBox(height: 10),
 
-              // السعر
+              
               Text("Total price", style: TextStyle(fontSize: 20)),
               Text(
                  "$price DZ",

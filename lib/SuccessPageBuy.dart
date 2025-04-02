@@ -31,7 +31,7 @@ class SuccessPage extends StatelessWidget {
             SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // العودة للصفحة السابقة
+                Navigator.pop(context); 
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF578FCA),

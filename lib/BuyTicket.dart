@@ -25,7 +25,7 @@ class _TicketPurchasePageState extends State<TicketPurchasePage> {
     if (query.isEmpty) return []; // إذا كان الحقل فارغاً لا نبحث
 
     final response = await http
-        .get(Uri.parse('http://192.168.1.2:5000/search-user?query=$query'));
+        .get(Uri.parse('http://192.168.1.3:5000/search-user?query=$query'));
 
     print("Response Status: ${response.statusCode}");
     print("Response Body: ${response.body}");
@@ -70,7 +70,7 @@ class _TicketPurchasePageState extends State<TicketPurchasePage> {
       return;
     }
 
-    final url = Uri.parse("http://192.168.1.2:5000/buy-ticket");
+    final url = Uri.parse("http://192.168.1.3:5000/buy-ticket");
     final body = jsonEncode({
       "user_id": widget.user['id'],
       "nombre_passage": ticketCount,
@@ -99,12 +99,12 @@ class _TicketPurchasePageState extends State<TicketPurchasePage> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("❌ Error: ${responseData['message']}")),
+          SnackBar(content: Text("Error: ${responseData['message']}")),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("⚠️ Failed to connect to server!")),
+        SnackBar(content: Text("Failed to connect to server!")),
       );
     }
   }

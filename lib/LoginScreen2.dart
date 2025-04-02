@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:tram_app2/AdminRequestsPage.dart';
+import 'package:tram_app2/ControllerPage.dart';
 import 'package:tram_app2/home.dart';
 
 
@@ -22,7 +23,7 @@ class _LoginScreen2State extends State<LoginScreen2> {
       isLoading = true;
     });
 
-   final String apiUrl = "http://192.168.1.2:5000/login"; 
+   final String apiUrl = "http://192.168.1.3:5000/login"; 
 
 
     try {
@@ -51,7 +52,13 @@ class _LoginScreen2State extends State<LoginScreen2> {
         context,
         MaterialPageRoute(builder: (context) => Home(user: responseData['user'])),
       );
-    } else {
+    }
+    else if (role == "controller") {
+       Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) =>ControllerPage()),
+      );
+    }  else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Unknown role")),
       );
@@ -79,13 +86,20 @@ class _LoginScreen2State extends State<LoginScreen2> {
   Widget build(BuildContext context) {
     return Scaffold(
               backgroundColor: Colors.white,
-      body: Center(
+      body:SingleChildScrollView(
+  child: Container(
+    height: MediaQuery.of(context).size.height, // ليأخذ كامل ارتفاع الشاشة
+    alignment: Alignment.center, // لجعل العناصر في الوسط
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Image.asset(
+                  'assets/patterns/tram.png',
+                  fit: BoxFit.cover, 
+                ),
               Text(
                 "Login",
                 style: TextStyle(
@@ -158,6 +172,7 @@ class _LoginScreen2State extends State<LoginScreen2> {
           ),
         ),
       ),
+      ),
     );
   }
 }
@@ -175,7 +190,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _registerUser() async {
-    final String apiUrl = "http://192.168.1.2:5000/register"; 
+    final String apiUrl = "http://192.168.1.3:5000/register"; 
 
     if (_firstNameController.text.isEmpty ||
         _lastNameController.text.isEmpty ||
@@ -204,7 +219,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Account created successfully")),
       );
-      Navigator.pop(context); // الرجوع لصفحة تسجيل الدخول
+      Navigator.pop(context); 
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(responseData['message'] ?? "Registration failed")),
@@ -285,7 +300,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-                      onPressed: _registerUser, // ربط الزر بالدالة
+                      onPressed: _registerUser, 
                       child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 15),
                         child: Text("SIGN UP", style: TextStyle(fontSize: 18,color: Colors.white)),

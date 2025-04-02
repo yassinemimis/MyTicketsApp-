@@ -3,6 +3,9 @@ import 'package:tram_app2/Change_Password.dart';
 import 'package:tram_app2/Payment_Methods.dart';
 import 'package:tram_app2/Personal_Data.dart';
 import 'package:tram_app2/SettingsScreen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 
 class ProfileScreen extends StatefulWidget {
   final Map<String, dynamic> user;
@@ -18,6 +21,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _onItemTapped(int index) {
     setState(() {});
+  }
+
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      File selectedImage = File(pickedFile.path);
+      setState(() {
+        _image = selectedImage;
+      });
+
+      // رفع الصورة بعد اختيارها
+      await updateProfileImage(selectedImage, widget.user['id']);
+    }
+  }
+
+  
+  Future<void> updateProfileImage(File imageFile, int userId) async {
+    var request = http.MultipartRequest(
+      "PUT",
+      Uri.parse("http://192.168.1.3:5000/update-photo/$userId"),
+    );
+
+    var pic = await http.MultipartFile.fromPath("photo_profil", imageFile.path);
+    request.files.add(pic);
+
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      print("Image updated successfully");
+    } else {
+      print("Image update failed");
+    }
   }
 
   @override
@@ -44,14 +81,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: Colors.white,
-                        backgroundImage: NetworkImage(
-                            'https://media.licdn.com/dms/image/v2/D4E03AQH6F13n0KOofg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1699315717040?e=1747872000&v=beta&t=fEkLrHOVCnuhe5NRrMx6hEO4wBAIgEuhoRRSPamqlqM'),
+                        backgroundImage: _image != null
+                            ? FileImage(_image!) as ImageProvider
+                            : NetworkImage(
+                                'http://192.168.1.3:5000/uploads/${widget.user['photo_profil']}',
+                              ),
+                        onBackgroundImageError: (error, stackTrace) {
+                          
+                        },
+                        child: _image == null &&
+                                (widget.user['photo_profil'] == null ||
+                                    widget.user['photo_profil'].isEmpty)
+                            ? Icon(Icons.account_circle,
+                                size: 50, color: Colors.blue)
+                            : null,
                       ),
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Colors.white,
-                        child: Icon(Icons.camera_alt,
-                            color: Color(0xFF3674B5), size: 20),
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.white,
+                          child: Icon(Icons.camera_alt,
+                              color: Color(0xFF3674B5), size: 20),
+                        ),
                       ),
                     ],
                   ),
@@ -75,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => PersonalDataScreen()),
+                  MaterialPageRoute(builder: (context) => PersonalDataScreen(user: widget.user)),
                 );
               },
             ),
@@ -124,12 +176,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// ويدجت عنصر القائمة
+
 class ProfileMenuItem extends StatelessWidget {
   final IconData icon;
   final String text;
   final Color color;
-  final VoidCallback? onTap; // ✅ إضافة onTap كـ Callback
+  final VoidCallback? onTap; 
 
   ProfileMenuItem(
       {required this.icon,
@@ -142,7 +194,7 @@ class ProfileMenuItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: InkWell(
-        // ✅ لجعل العنصر قابلاً للنقر
+    
         onTap: onTap,
         borderRadius: BorderRadius.circular(15),
         child: Container(

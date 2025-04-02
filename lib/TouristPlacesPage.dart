@@ -50,7 +50,7 @@ class TouristPlacesPage extends StatelessWidget {
         itemBuilder: (context, index) {
           final place = places[index];
           return Card(
-            color: Colors.lightBlue.shade100, // اللون الصحيح داخل Card
+            color: Colors.lightBlue.shade100, 
 
             margin: EdgeInsets.all(10),
             child: ListTile(
@@ -134,7 +134,7 @@ class PlaceDetailsPage extends StatelessWidget {
                   place["website"] != null
                       ? ElevatedButton.icon(
                           onPressed: () {
-                            // Open website (if available)
+                            
                           },
                           icon:
                               Icon(Icons.open_in_browser, color: Colors.white),

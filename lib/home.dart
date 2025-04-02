@@ -3,10 +3,12 @@ import 'package:tram_app2/AllChatsPage.dart';
 import 'package:tram_app2/BuyTicket.dart';
 import 'package:tram_app2/BuyTramOptionsPage.dart';
 import 'package:tram_app2/CardScreen.dart';
+import 'package:tram_app2/ChatPage1.dart';
 import 'package:tram_app2/NotificationsPage.dart';
 import 'package:tram_app2/SubscriptionPage.dart';
 import 'dart:async';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:tram_app2/Ticket.dart';
 import 'package:tram_app2/TouristPlacesPage.dart';
 import 'package:tram_app2/profil.dart';
@@ -23,17 +25,31 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   Duration duration = Duration();
   int _selectedIndex = 0;
-
+  late Timer timer;
+  Timer? _timer;
+  int _unreadCount = 0; 
+  
+  void _startAutoRefresh() {
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+      fetchUnreadCount();
+    });
+  }
   void _onItemTapped(int index) {
     if (index == 1) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => TramTicketScreen(user: widget.user),),
+        MaterialPageRoute(
+          builder: (context) => TramTicketScreen(user: widget.user),
+        ),
       );
     } else if (index == 2) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ChatPage()),
+        MaterialPageRoute(
+            builder: (context) => ChatPage(
+                  userId: "5",
+                  receiverId: "4",
+                )),
       );
     } else if (index == 3) {
       Navigator.push(
@@ -46,10 +62,26 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+      fetchUnreadCount();
     updateTimeRemaining();
     startTimer();
+    _startAutoRefresh(); 
   }
-
+Future<void> fetchUnreadCount() async {
+    final url = Uri.parse("http://192.168.1.3:5000/notifications/1/unread-count");
+    
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _unreadCount = data["unread_count"];
+        });
+      }
+    } catch (e) {
+      print(" Error fetching unread notifications: $e");
+    }
+  }
   void updateTimeRemaining() {
     DateTime now = DateTime.now();
     DateTime targetTime = DateTime(now.year, now.month, now.day, 22, 0, 0);
@@ -75,6 +107,13 @@ class _HomeState extends State<Home> {
     });
   }
 
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+     _timer?.cancel();
+  }
+
   String twoDigits(int n) => n.toString().padLeft(2, '0');
   @override
   Widget build(BuildContext context) {
@@ -95,22 +134,24 @@ class _HomeState extends State<Home> {
                 padding: EdgeInsets.symmetric(horizontal: 25, vertical: 0),
                 child: Row(
                   children: [
-                    Text(
-                      "Hello,\n${widget.user['nom']}",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        "Hello,\n${widget.user['nom']}",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 32, 
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow
+                            .ellipsis, 
                       ),
                     ),
-                    Spacer(), 
-
-               
+                    Spacer(),
                     Stack(
                       children: [
                         GestureDetector(
                           onTap: () {
-                        
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -120,20 +161,20 @@ class _HomeState extends State<Home> {
                           child: Icon(
                             Icons.notifications,
                             color: Color(0xFF578FCA),
-                            size: 45,
+                            size: 40, 
                           ),
                         ),
                         Positioned(
                           right: 0,
                           top: 0,
                           child: Container(
-                            padding: EdgeInsets.all(5),
+                            padding: EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               color: Colors.red,
                               shape: BoxShape.circle,
                             ),
                             child: Text(
-                              "3", // عدد الإشعارات
+                              "$_unreadCount", 
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -144,22 +185,29 @@ class _HomeState extends State<Home> {
                         ),
                       ],
                     ),
-                    SizedBox(width: 15), // تباعد بين الإشعارات والبروفايل
-
-                    // صورة البروفايل
+                    SizedBox(width: 10), 
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => ProfileScreen(user: widget.user),),
+                            builder: (context) =>
+                                ProfileScreen(user: widget.user),
+                          ),
                         );
                       },
                       child: CircleAvatar(
-                        radius: screenWidth * 0.1,
-                        backgroundImage: NetworkImage(
-                          'https://media.licdn.com/dms/image/v2/D4E03AQH6F13n0KOofg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1699315717040?e=1747872000&v=beta&t=fEkLrHOVCnuhe5NRrMx6hEO4wBAIgEuhoRRSPamqlqM',
-                        ),
+                        radius: screenWidth * 0.08, 
+                        backgroundImage: widget.user['photo_profil'] != null &&
+                                widget.user['photo_profil'].isNotEmpty
+                            ? NetworkImage(
+                                'http://192.168.1.3:5000/uploads/${widget.user['photo_profil']}')
+                            : null,
+                        child: (widget.user['photo_profil'] == null ||
+                                widget.user['photo_profil'].isEmpty)
+                            ? Icon(Icons.account_circle,
+                                size: screenWidth * 0.08, color: Colors.grey)
+                            : null,
                       ),
                     ),
                   ],
@@ -197,7 +245,6 @@ class _HomeState extends State<Home> {
                           Container(
                             child: Column(
                               children: [
-                                
                                 TramOptionCard(
                                   title: "Buy Tram Ticket",
                                   description:
@@ -209,7 +256,8 @@ class _HomeState extends State<Home> {
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) =>
-                                              TicketPurchasePage(user: widget.user)),
+                                              TicketPurchasePage(
+                                                  user: widget.user)),
                                     );
                                   },
                                 ),
@@ -225,7 +273,8 @@ class _HomeState extends State<Home> {
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) =>
-                                              SubscriptionPage(user: widget.user)),
+                                              SubscriptionPage(
+                                                  user: widget.user)),
                                     );
                                   },
                                 ),
@@ -263,7 +312,7 @@ class _HomeState extends State<Home> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.directions_transit,
-                              color: Colors.white, size: 45), // أيقونة الترام
+                              color: Colors.white, size: 45),
                           SizedBox(width: 8),
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -319,7 +368,8 @@ class _HomeState extends State<Home> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CardScreen(user: widget.user)),
+              MaterialPageRoute(
+                  builder: (context) => CardScreen(user: widget.user)),
             );
           },
           backgroundColor: Color(0xFF578FCA),

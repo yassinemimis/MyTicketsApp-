@@ -14,7 +14,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   void _changePassword() {
     if (_formKey.currentState!.validate()) {
-      // تنفيذ منطق تغيير كلمة المرور هنا
+    
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Password changed successfully!")),
       );
@@ -62,7 +62,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  // ويدجت لحقل إدخال كلمة المرور
+ 
   Widget _buildPasswordField(String label, TextEditingController controller) {
     return TextFormField(
       controller: controller,

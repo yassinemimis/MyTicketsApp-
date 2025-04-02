@@ -34,7 +34,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     if (selectedDuration == "1 Year") price *= 8.5;
 
     if (isStudent) {
-      price *= (1 - studentDiscount); // خصم 10% للطلاب
+      price *= (1 - studentDiscount); 
     }
     return price;
   }
@@ -56,14 +56,14 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
       Dio dio = Dio();
       Response response = await dio.post(
-        "http://192.168.1.2:5000/upload", // استبدل بعنوان API الحقيقي
+        "http://192.168.1.3:5000/upload", 
         data: formData,
       );
 
       if (response.statusCode == 200) {
        final responseData = response.data;
       setState(() {
-          uploadedFileName = responseData['filePath'].split('/').last;  // استخراج اسم الملف فقط
+          uploadedFileName = responseData['filePath'].split('/').last; 
         });
     } else {
         throw Exception("Failed to upload file");
@@ -92,12 +92,12 @@ int getDurationValue(String? selectedDuration) {
   Future<void> submitRequest() async {
     if (selectedWilaya == null || selectedSubscriptionType == null || selectedDuration == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("⚠️ يرجى اختيار جميع الخيارات قبل الإرسال!")),
+        SnackBar(content: Text("⚠️ Please select all options before submitting!")),
       );
       return;
     }
 
-    String apiUrl = "http://192.168.1.2:5000/subscribe";
+    String apiUrl = "http://192.168.1.3:5000/subscribe";
 String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   Map<String, dynamic> requestData = {
@@ -119,16 +119,16 @@ String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("✅ تم إرسال الطلب بنجاح!")),
+          SnackBar(content: Text(" Request sent successfully!")),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("❌ فشل في إرسال الطلب! حاول مرة أخرى.")),
+          SnackBar(content: Text("Failed to send request! Try again.")),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("🚨 خطأ في الاتصال بالخادم!")),
+        SnackBar(content: Text("🚨 Server connection error!")),
       );
     }
   }

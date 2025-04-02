@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // لتحويل الاستجابة من JSON
-import 'package:intl/intl.dart'; // تأكد من استيراد مكتبة intl
+import 'dart:convert';
+import 'package:intl/intl.dart'; 
 import 'package:flutter_svg/flutter_svg.dart';
 
 class CardScreen extends StatefulWidget {
@@ -16,7 +16,7 @@ class CardScreen extends StatefulWidget {
 
 class _CardScreen extends State<CardScreen> {
   String? subscriptionStatus;
-  bool isLoading = true; // لتحديد ما إذا كان التطبيق في حالة تحميل
+  bool isLoading = true; 
   String state = "";
   String nom = "";
   String prenom = "";
@@ -24,41 +24,41 @@ class _CardScreen extends State<CardScreen> {
   String code = "";
   String dateString = "";
   String formattedDate = "";
-  // دالة لجلب البيانات من API
+
   void getLastActiveSubscription() async {
     try {
-      // إرسال طلب GET إلى API
+     
       final response = await http.get(Uri.parse(
-          'http://192.168.1.2:5000/last-active-subscription/${widget.user['id']}'));
+          'http://192.168.1.3:5000/last-active-subscription/${widget.user['id']}'));
 
       if (response.statusCode == 200) {
-        // تحويل الاستجابة إلى JSON
+       
         final responseData =
-            jsonDecode(response.body); // استخدم jsonDecode لتحويل البيانات
+            jsonDecode(response.body); 
 
-        // طباعة الاستجابة بالكامل للتحقق من الهيكل
+      
         print('Response Body: ${response.body}');
         print('Response Data: $responseData');
 
-        // الوصول إلى البيانات داخل "data"
+   
         if (responseData['data'] != null &&
             responseData['data'].containsKey('statut')) {
           setState(() {
             subscriptionStatus = responseData['data']
-                ['statut']; // استخراج الحالة (statut) من "data"
+                ['statut'];
             state = responseData['data']['state'];
             type = responseData['data']['subscription_type'];
             code = responseData['data']['code_card'];
             dateString = responseData['data']['date_fin'];
 
-            // تحويل السلسلة النصية إلى كائن DateTime
+           
             DateTime date = DateTime.parse(dateString);
 
-            // تنسيق التاريخ بالشكل الذي تريده (يوم/شهر/سنة)
+        
             formattedDate = DateFormat('dd/MM/yyyy').format(date);
 
             print("Subscription Status: $subscriptionStatus");
-            isLoading = false; // تحديد أن البيانات تم تحميلها
+            isLoading = false;
           });
         } else {
           throw Exception('Statut not found in response data');
@@ -69,7 +69,7 @@ class _CardScreen extends State<CardScreen> {
     } catch (e) {
       print('Error: $e');
       setState(() {
-        subscriptionStatus = null; // إذا حدث خطأ، تعيين null
+        subscriptionStatus = null; 
         isLoading = false;
       });
     }
@@ -78,7 +78,7 @@ class _CardScreen extends State<CardScreen> {
   @override
   void initState() {
     super.initState();
-    getLastActiveSubscription(); // استدعاء الدالة عند تحميل الواجهة
+    getLastActiveSubscription(); 
   }
 
   void showTicketDetails(
@@ -291,7 +291,7 @@ class _CardScreen extends State<CardScreen> {
                             ),
                             SizedBox(height: 12),
 
-                            // Subscription Type
+                         
                             Text("Subscription Type",
                                 style: TextStyle(fontSize: 18)),
                             Text(type,
@@ -299,14 +299,14 @@ class _CardScreen extends State<CardScreen> {
                                     fontSize: 18, fontWeight: FontWeight.bold)),
                             SizedBox(height: 12),
 
-                            // ID Ticket
+                          
                             Text("Id ticket", style: TextStyle(fontSize: 18)),
                             Text(code,
                                 style: TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold)),
                             SizedBox(height: 12),
 
-                            // Logo Placeholder
+                           
                           ],
                         ),
                       ),

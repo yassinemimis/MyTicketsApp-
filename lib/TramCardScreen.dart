@@ -113,7 +113,7 @@ class FrontCard extends StatelessWidget {
                     ),
                     child: CircleAvatar(
                       radius: width * 0.1,
-                      backgroundImage: NetworkImage('https://media.licdn.com/dms/image/v2/D4E03AQH6F13n0KOofg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1699315717040?e=1747872000&v=beta&t=fEkLrHOVCnuhe5NRrMx6hEO4wBAIgEuhoRRSPamqlqM'),
+                      backgroundImage: NetworkImage('http://192.168.1.3:5000/uploads/${user['photo_profil']}'),
                     ),
                   ),
                   Expanded(

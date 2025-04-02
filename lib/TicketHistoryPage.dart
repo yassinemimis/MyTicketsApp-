@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // لحساب التاريخ 
+import 'package:intl/intl.dart'; 
 
 class TicketHistoryPage extends StatefulWidget {
   @override
@@ -7,7 +7,7 @@ class TicketHistoryPage extends StatefulWidget {
 }
 
 class _TicketHistoryPageState extends State<TicketHistoryPage> {
-  // Fake scanned tickets data
+  
   List<Map<String, String>> allTickets = [
     {"destination": "Station A", "type": "Student", "date": "2025-03-23", "status": "Valid"},
     {"destination": "Station B", "type": "Regular", "date": "2025-03-22", "status": "Expired"},
@@ -15,7 +15,7 @@ class _TicketHistoryPageState extends State<TicketHistoryPage> {
     {"destination": "Station D", "type": "Regular", "date": "2025-03-21", "status": "Expired"},
   ];
 
-  String selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now()); // Default to today
+  String selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now()); 
 
   @override
   Widget build(BuildContext context) {

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:tram_app2/TramTicketScreenExpired.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // لتحويل الاستجابة من JSON
-import 'package:intl/intl.dart'; // تأكد من استيراد مكتبة intl
+import 'dart:convert'; 
+import 'package:intl/intl.dart'; 
 import 'package:flutter_svg/flutter_svg.dart';
 class TramTicketScreen extends StatefulWidget {
   final Map<String, dynamic> user;
@@ -15,20 +15,22 @@ class TramTicketScreen extends StatefulWidget {
 
 class _TramTicketScreenState extends State<TramTicketScreen> {
   bool isActive = true;
- bool isLoading = true; // لتحديد ما إذا كان التطبيق في حالة تحميل
+ bool isLoading = true; 
   String state = "";
-  String nom = "";
+  String? type_ticket;
+  int nombre_passage = 1;
   String prenom = "";
-  String type = "";
-  String code = "";
-  String dateString = "";
+
+  String code_ticket = "";
+  String date_creation = "";
   String formattedDate = "";
-  // دالة لجلب البيانات من API
+  String formattedDateday = "";
+  String price = "";
   void getLastActiveSubscription() async {
     try {
-      // إرسال طلب GET إلى API
+     
       final response = await http.get(Uri.parse(
-          'http://192.168.1.2:5000/last-active-subscription/${widget.user['id']}'));
+          'http://192.168.1.3:5000/last-active-tickets/${widget.user['id']}'));
 
       if (response.statusCode == 200) {
        
@@ -38,24 +40,24 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
         print('Response Body: ${response.body}');
         print('Response Data: $responseData');
 
-        // الوصول إلى البيانات داخل "data"
+        
         if (responseData['data'] != null &&
             responseData['data'].containsKey('statut')) {
           setState(() {
           
             state = responseData['data']['state'];
-            type = responseData['data']['subscription_type'];
-            code = responseData['data']['code_card'];
-            dateString = responseData['data']['date_fin'];
+            date_creation = responseData['data']['date_creation'];
+            code_ticket = responseData['data']['code_ticket'];
+            nombre_passage = responseData['data']['nombre_passage'];
+            price = responseData['data']['total_price'];
+            type_ticket = responseData['data']['type_ticket'];
+            DateTime date = DateTime.parse(date_creation);
 
-            // تحويل السلسلة النصية إلى كائن DateTime
-            DateTime date = DateTime.parse(dateString);
+             formattedDateday = DateFormat('dd/MM/yyyy').format(date);
+            formattedDate = DateFormat('HH:mm').format(date);
+            print("$formattedDate ffffffff");
 
-            // تنسيق التاريخ بالشكل الذي تريده (يوم/شهر/سنة)
-            formattedDate = DateFormat('dd/MM/yyyy').format(date);
-
-
-            isLoading = false; // تحديد أن البيانات تم تحميلها
+            isLoading = false; 
           });
         } else {
           throw Exception('Statut not found in response data');
@@ -66,7 +68,7 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
     } catch (e) {
       print('Error: $e');
       setState(() {
-      
+      type_ticket = null;
         isLoading = false;
       });
     }
@@ -75,7 +77,7 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
   @override
   void initState() {
     super.initState();
-    getLastActiveSubscription(); // استدعاء الدالة عند تحميل الواجهة
+    getLastActiveSubscription(); 
   }
   void showTicketDetails(BuildContext context) {
     showModalBottomSheet(
@@ -90,12 +92,12 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // التاريخ + الحالة
+           
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "March 18, 2025",
+                    formattedDateday,
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   Container(
@@ -119,14 +121,14 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
               ),
               SizedBox(height: 10),
 
-              // معلومات التذكرة
+             
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     children: [
                       Text("State", style: TextStyle(fontSize: 20)),
-                      Text("Oran",
+                      Text(state,
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold)),
                     ],
@@ -134,7 +136,7 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
                   Column(
                     children: [
                       Text("Time", style: TextStyle(fontSize: 20)),
-                      Text("16:30",
+                      Text(formattedDate,
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold)),
                     ],
@@ -142,7 +144,7 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
                   Column(
                     children: [
                       Text("Passengers", style: TextStyle(fontSize: 20)),
-                      Text("1",
+                      Text("$nombre_passage",
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold)),
                     ],
@@ -152,18 +154,18 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
 
               SizedBox(height: 15),
 
-              // رقم التذكرة
+              
               Text("Id ticket", style: TextStyle(fontSize: 20)),
               Text(
-                "2-9097-0115-5487-5375",
+                code_ticket,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
 
-              // السعر
+          
               Text("Total price", style: TextStyle(fontSize: 20)),
               Text(
-                "30 DZ",
+                price,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20),
@@ -212,9 +214,54 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
         ),
         centerTitle: false,
       ),
-      body: Container(
+      body:isLoading
+          ? CircularProgressIndicator()
+          : type_ticket == null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, 
+                    crossAxisAlignment:
+                        CrossAxisAlignment.center, 
+                    children: [
+                      Image.asset(
+                  'assets/patterns/ticket.png',
+                   height: screenHeight * 0.3,
+                        width: screenWidth * 0.7,
+                  fit: BoxFit.cover, 
+                ),
+                      SizedBox(height: screenWidth * 0.05),
+              Text(
+                'You currently don t have an active ticket',
+                style: TextStyle(
+                  fontSize: screenWidth * 0.035,
+                  color: Colors.grey.shade700,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              SizedBox(height: screenWidth * 0.05),
+                      ElevatedButton(
+                        onPressed: () {
+                          
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                          textStyle: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                          backgroundColor: const Color(0xFF578FCA),
+                        ),
+                        child: const Text(
+                          "Buy now",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Container(
         child: Row(
-    mainAxisAlignment: MainAxisAlignment.center, // توسيط العنصر أفقيًا
+    mainAxisAlignment: MainAxisAlignment.center,
     children: [
       Container(
           width: screenWidth * 0.9,
@@ -239,7 +286,7 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => TramTicketScreenExpired()),
+                              builder: (context) => TramTicketScreenExpired(user: widget.user)),
                         );
                       });
                     }, screenWidth),
@@ -280,7 +327,7 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
                     ),
                     SizedBox(height: screenHeight * 0.005),
                     Text(
-                      "valid 1 day",
+                      "Used once",
                       style: TextStyle(
                         fontSize: screenWidth * 0.05,
                         color: Colors.grey[700],
@@ -306,7 +353,7 @@ class _TramTicketScreenState extends State<TramTicketScreen> {
               ),
               SizedBox(height: screenHeight * 0.02),
               QrImageView(
-                data: "https://your-ticket-data.com",
+                data: code_ticket,
                 version: QrVersions.auto,
                 size: screenWidth * 0.5,
               ),

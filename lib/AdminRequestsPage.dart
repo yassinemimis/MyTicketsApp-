@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:tram_app2/AllChatsPage.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AdminRequestsPage extends StatefulWidget {
   @override
@@ -7,40 +10,96 @@ class AdminRequestsPage extends StatefulWidget {
 }
 
 class _AdminRequestsPageState extends State<AdminRequestsPage> {
-  List<Map<String, dynamic>> requests = [
-    {"name": "Ali Ahmed", "wilaya": "Algiers", "student": true, "status": "Pending", "pdfUploaded": true},
-    {"name": "Sara Ben", "wilaya": "Oran", "student": false, "status": "Approved", "pdfUploaded": false},
-    {"name": "Youssef Karim", "wilaya": "Constantine", "student": true, "status": "Rejected", "pdfUploaded": false},
-    {"name": "Meriem Boudiaf", "wilaya": "Blida", "student": false, "status": "Pending", "pdfUploaded": false},
-  ];
+  List<Map<String, dynamic>> requests = [];
+  String filter = "All";
 
-  String filter = "All"; // "All", "Pending", "History"
+  @override
+  void initState() {
+    super.initState();
+    fetchRequests();
+  }
 
-  void updateRequestStatus(int index, String status) {
-    setState(() {
-      requests[index]["status"] = status;
-    });
+  Future<void> fetchRequests() async {
+    final response = await http
+        .get(Uri.parse('http://192.168.1.3:5000/pending-abonnements'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      setState(() {
+        requests = data
+            .map((item) => {
+                  "id_ab": item["id_ab"],
+                  "name": "${item["nom"]} ${item["prenom"]}",
+                  "wilaya": item["state"],
+                  "student": item["subscription_type"] == "student",
+                  "status": item["validation"],
+                  "pdfUrl": item["student_id_path"]
+                })
+            .toList();
+      });
+    }
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Request ${status.toLowerCase()} successfully!")),
+  Future<void> updateRequestStatus(int? id, String status) async {
+    if (id == null) {
+      print("⚠ Error: Cannot send null as id");
+
+      return;
+    }
+
+    final response = await http.put(
+      Uri.parse('http://192.168.1.3:5000/update-abonnement/$id'),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({"validation": status.toLowerCase()}),
     );
+
+    if (response.statusCode == 200) {
+      await fetchRequests();
+      setState(() {
+        var request = requests.firstWhere(
+          (req) => req["id_ab"] == id,
+          orElse: () => {},
+        );
+        if (request.isNotEmpty) {
+          request["validation"] = status;
+        } else {
+        print("⚠ Request not found in the list.");
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Request $status successfully!")),
+      );
+    }
+  }
+
+  void openPdf(String fileName) async {
+    final Uri pdfUrl = Uri.parse("http://192.168.1.3:5000/uploads/$fileName");
+
+    if (await canLaunchUrl(pdfUrl)) {
+      await launchUrl(pdfUrl, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Could not open PDF")),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     List<Map<String, dynamic>> filteredRequests = requests.where((request) {
-      if (filter == "Pending") return request["status"] == "Pending";
-      if (filter == "History") return request["status"] != "Pending";
+      if (filter == "Pending") return request["status"] == "pending";
+      if (filter == "History") return request["status"] != "pending";
       return true;
     }).toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Admin - Subscription Requests", style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),),
+        title: Text("Admin - Subscription Requests",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            )),
         backgroundColor: Color(0xFF578FCA),
       ),
       body: Column(
@@ -51,12 +110,15 @@ class _AdminRequestsPageState extends State<AdminRequestsPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF578FCA)),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF578FCA)),
                   onPressed: () => setState(() => filter = "Pending"),
-                  child: Text("Unread Requests", style: TextStyle(color: Colors.white)),
+                  child: Text("Unread Requests",
+                      style: TextStyle(color: Colors.white)),
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF578FCA)),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF578FCA)),
                   onPressed: () => setState(() => filter = "History"),
                   child: Text("History", style: TextStyle(color: Colors.white)),
                 ),
@@ -65,7 +127,10 @@ class _AdminRequestsPageState extends State<AdminRequestsPage> {
           ),
           Expanded(
             child: filteredRequests.isEmpty
-                ? Center(child: Text("No requests found!", style: TextStyle(color: Color(0xFF578FCA), fontSize: 18)))
+                ? Center(
+                    child: Text("No requests found!",
+                        style:
+                            TextStyle(color: Color(0xFF578FCA), fontSize: 18)))
                 : ListView.builder(
                     itemCount: filteredRequests.length,
                     itemBuilder: (context, index) {
@@ -75,40 +140,85 @@ class _AdminRequestsPageState extends State<AdminRequestsPage> {
                         color: Colors.lightBlue.shade50,
                         child: ListTile(
                           leading: Icon(Icons.person, color: Color(0xFF578FCA)),
-                          title: Text(request["name"], style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF578FCA))),
+                          title: Text(request["name"],
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF578FCA))),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text("Wilaya: ${request["wilaya"]}"),
-                              Text("Type: ${request["student"] ? "Student (10% Discount)" : "Regular"}"),
+                              Text(
+                                  "Type: ${request["student"] ? "Student (10% Discount)" : "Regular"}"),
                               Text("Status: ${request["status"]}",
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: request["status"] == "Pending"
+                                      color: request["status"] == "pending"
                                           ? Colors.orange
-                                          : request["status"] == "Approved"
+                                          : request["status"] == "approved"
                                               ? Colors.green
                                               : Colors.red)),
-                              if (request["student"] && request["pdfUploaded"])
-                                Row(
-                                  children: [
-                                    Icon(Icons.picture_as_pdf, color: Colors.red),
-                                    Text(" Student ID Uploaded", style: TextStyle(color: Colors.red)),
-                                  ],
+                              if (request["student"] &&
+                                  request["pdfUrl"] != null)
+                                GestureDetector(
+                                  onTap: () => openPdf(request["pdfUrl"]),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.picture_as_pdf,
+                                          color: Colors.red),
+                                      GestureDetector(
+                                        onTap: () {
+                                          if (request["pdfUrl"] != null) {
+                                            openPdf(request["pdfUrl"]!);
+                                          } else {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                  content: Text(
+                                                      "No PDF available!")),
+                                            );
+                                          }
+                                        },
+                                        child: Text(" Student ID Uploaded",
+                                            style: TextStyle(
+                                                color: Colors.red,
+                                                decoration:
+                                                    TextDecoration.underline)),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                             ],
                           ),
-                          trailing: request["status"] == "Pending"
+                          trailing: request["status"] == "pending"
                               ? Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: Icon(Icons.check, color: Colors.green),
-                                      onPressed: () => updateRequestStatus(index, "Approved"),
+                                      icon: Icon(Icons.check,
+                                          color: Colors.green),
+                                      onPressed: () {
+                                        if (request["id_ab"] != null) {
+                                          updateRequestStatus(
+                                              request["id_ab"], "approved");
+                                        } else {
+                                       print("⚠ Error: `id_ab` is missing or null");
+                                        }
+                                      },
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.close, color: Colors.red),
-                                      onPressed: () => updateRequestStatus(index, "Rejected"),
+                                      icon:
+                                          Icon(Icons.close, color: Colors.red),
+                                      onPressed: () {
+                                        print("📌 Data: $request");
+
+                                        if (request["id_ab"] != null) {
+                                          updateRequestStatus(
+                                              request["id_ab"], "rejected");
+                                        } else {
+                                         print("⚠ Error: `id` is missing or null");
+                                        }
+                                      },
                                     ),
                                   ],
                                 )
@@ -120,18 +230,13 @@ class _AdminRequestsPageState extends State<AdminRequestsPage> {
           ),
         ],
       ),
-
-       floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xFF578FCA),
         onPressed: () {
-          
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Chat Feature Coming Soon!")),
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AllChatsPage()),
           );
-            Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => AllChatsPage()),
-                      );
         },
         child: Icon(Icons.chat, color: Colors.white),
       ),

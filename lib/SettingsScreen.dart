@@ -23,7 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: EdgeInsets.all(20),
         children: [
-          // الوضع الليلي
+      
           _buildSettingItem(
             icon: Icons.dark_mode,
             title: "Dark Mode",
@@ -38,7 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
-          // الإشعارات
+    
           _buildSettingItem(
             icon: Icons.notifications,
             title: "Notifications",
@@ -53,7 +53,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
-          // اللغة
+  
           _buildSettingItem(
             icon: Icons.language,
             title: "Language",
@@ -70,23 +70,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
-          // الخصوصية
+     
           _buildSettingItem(
             icon: Icons.lock,
             title: "Privacy Settings",
             trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey),
             onTap: () {
-              // فتح صفحة الخصوصية
+              
             },
           ),
 
           SizedBox(height: 20),
 
-          // زر تسجيل الخروج
+       
           Center(
             child: ElevatedButton(
               onPressed: () {
-                // تنفيذ عملية تسجيل الخروج
+            
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
@@ -101,7 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ويدجت لإعدادات الصفوف
+
   Widget _buildSettingItem({required IconData icon, required String title, Widget? trailing, VoidCallback? onTap}) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
